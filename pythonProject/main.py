@@ -6,7 +6,8 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    folder = '/home/maryskal/Documents/SITK/Vessel_stencils'
+    #folder = '/home/maryskal/Documents/SITK/Vessel_stencils'
+    folder = '/mnt/d/Users/maryskal/Documents/SITK/Vessel_stencils'
     # Saco todos los files y les elimino la carpeta
     files = [re.split(f'{folder}/', file)[1] for file in glob.glob(f"{folder}/*.nrrd")]
     # Me quedo con los 4 primeras letras, que son el paciente
