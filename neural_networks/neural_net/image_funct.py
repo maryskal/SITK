@@ -32,6 +32,7 @@ def augment(input_image, input_mask):
     # Random flipping of the image and mask
     input_image = np.expand_dims(imutils.rotate(input_image, angle=r),  axis=-1)
     input_mask = np.expand_dims(imutils.rotate(input_mask, angle=r), axis=-1)
+    input_mask = binarize(input_mask)
     return input_image, input_mask
 
 
