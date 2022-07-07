@@ -19,7 +19,6 @@ def start_plot():
 # Callback invoked when the EndEvent happens, do cleanup of data and figure.
 def end_plot():
     global metric_values, multires_iterations, ax, fig
-    
     del metric_values
     del multires_iterations
     del ax
