@@ -1,6 +1,6 @@
 from gc import callbacks
 import image_funct as im
-import unet_funct as un
+import unet_effic_funct as un
 import extra_functions as ex
 import logging_function as log
 import tensorflow as tf
@@ -41,11 +41,6 @@ if __name__ == '__main__':
                         type=bool,
                         default=False,
                         help="Callbacks")
-    parser.add_argument('-ch',
-                        '--chanels',
-                        type=int,
-                        default=3,
-                        help="Chanels")                        
 
 
     args = parser.parse_args()
@@ -56,47 +51,37 @@ if __name__ == '__main__':
     epoch = args.epochs
     pixels = args.pixels
     callbacks = args.callbacks
-    output_chanels = args.chanels
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
     masks = im.create_tensor(path, 'mascara', masks_name, im.normalize, pixels)
     images = im.create_tensor(path, 'images', masks_name, im.binarize, pixels)
-
-    images, masks = im.double_tensor(images,masks)
-
     log.information('Unet', 'Imagenes cargadas')
 
-    unet_model = un.build_unet_model(pixels,output_chanels)
+    images, masks = im.double_tensor(images,masks)
+    log.information('Unet', 'Nuevas imágenes generadas')
+
+    unet_model = un.definitive_model(pixels)
     unet_model.summary()
+
+
+    unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+                    loss=ex.dice_coef_loss,
+                    metrics=ex.dice_coef)
+    log.information('Unet', 'Modelo compilado')
+
 
     if callbacks:
         callb = [logs.tensorboard('U_net_'), logs.weights('U_net'), logs.early_stop(7)]
+        history = unet_model.fit(images,masks,
+                                batch_size = batch,
+                                epochs = epoch,
+                                callbacks= callb,
+                                shuffle = True,
+                                validation_split = 0.2)
     else:
-        callb = []
-
-    if output_chanels in [2,3]:
-        log.information('Unet', 'chanels ' + str(output_chanels))
-        unet_model.compile(optimizer=tf.keras.optimizers.Adam(),
-                        loss="sparse_categorical_crossentropy",
-                        metrics=["accuracy", "mean_squared_error"])
-        
         history = unet_model.fit(images,masks,
-                                    batch_size = batch,
-                                    epochs = epoch,
-                                    callbacks= callb,
-                                    shuffle = True,
-                                    validation_split = 0.2)
-
-    if output_chanels == 1:
-        log.information('Unet', 'chanels ' + str(output_chanels))
-        unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
-                        loss=ex.dice_coef_loss,
-                        metrics=ex.dice_coef)
-        
-        history = unet_model.fit(images,masks,
-                                    batch_size = batch,
-                                    epochs = epoch,
-                                    callbacks= callb,
-                                    shuffle = True,
-                                    validation_split = 0.2)
+                                batch_size = batch,
+                                epochs = epoch,
+                                shuffle = True,
+                                validation_split = 0.2)

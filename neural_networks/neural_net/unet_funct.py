@@ -30,7 +30,7 @@ def upsample_block(x, conv_features, n_filters):
     return x
 
 
-def build_unet_model(pixels):
+def build_unet_model(pixels, output_chanels=3):
      # inputs
     inputs = layers.Input(shape=(pixels,pixels,1))
 
@@ -58,7 +58,7 @@ def build_unet_model(pixels):
     u9 = upsample_block(u8, f1, 64)
 
     # outputs
-    outputs = layers.Conv2D(3, 1, padding="same", activation = "softmax")(u9)
+    outputs = layers.Conv2D(output_chanels, 1, padding="same", activation = "softmax")(u9)
 
     # unet model with Keras Functional API
     unet_model = tf.keras.Model(inputs, outputs, name="U-Net")

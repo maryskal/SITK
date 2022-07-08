@@ -3,7 +3,7 @@ import cv2
 import imutils
 import os
 
-def read_img(path, folder, img, pixels = 512):
+def read_img(path, folder, img, pixels = 256):
     img = cv2.imread(os.path.join(path, folder, img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.resize(img, (pixels, pixels))
@@ -20,7 +20,7 @@ def binarize(img):
     return img
 
 
-def create_tensor(path, folder, names, pixels, func):
+def create_tensor(path, folder, names, func, pixels=256):
     tensor = np.zeros((len(names), pixels,pixels,1))
     for i in range(len(names)):
         tensor[i, ...] = func(read_img(path, 'mascara', names[i], pixels))
