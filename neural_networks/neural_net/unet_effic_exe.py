@@ -61,7 +61,7 @@ if __name__ == '__main__':
     images, masks = im.double_tensor(images,masks)
     log.information('Unet', 'Nuevas imágenes generadas')
 
-    unet_model = un.definitive_model(pixels)
+    unet_model = un.definitive_model(pixels, 200)
     unet_model.summary()
 
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 
     if callbacks:
-        callb = [logs.tensorboard('U_net_'), logs.weights('U_net'), logs.early_stop(7)]
+        callb = [logs.tensorboard('U_net_efficient'), logs.early_stop(7)]
         history = unet_model.fit(images,masks,
                                 batch_size = batch,
                                 epochs = epoch,
