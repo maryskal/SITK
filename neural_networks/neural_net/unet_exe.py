@@ -70,7 +70,7 @@ if __name__ == '__main__':
     images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
 
     images, masks = im.double_tensor(images,masks)
-
+    
     log.information('Unet', 'Imagenes cargadas')
 
     unet_model = un.build_unet_model(pixels,output_chanels)

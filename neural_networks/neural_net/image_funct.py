@@ -28,7 +28,7 @@ def clahe(img):
 def create_tensor(path, folder, names, func, pixels=256):
     tensor = np.zeros((len(names), pixels,pixels,1))
     for i in range(len(names)):
-        tensor[i, ...] = func(clahe(read_img(path, 'mascara', names[i], pixels)))
+        tensor[i, ...] = func(clahe(read_img(path, folder, names[i], pixels)))
     return tensor
     
 
