@@ -45,7 +45,12 @@ if __name__ == '__main__':
                         '--chanels',
                         type=int,
                         default=3,
-                        help="Chanels")                        
+                        help="Chanels")
+    parser.add_argument('-n',
+                        '--name',
+                        type=str,
+                        default='chanels_model_',
+                        help="name of the model")                               
 
 
     args = parser.parse_args()
@@ -57,11 +62,12 @@ if __name__ == '__main__':
     pixels = args.pixels
     callbacks = args.callbacks
     output_chanels = args.chanels
+    name = args.name
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
-    masks = im.create_tensor(path, 'mascara', masks_name, im.normalize, pixels)
-    images = im.create_tensor(path, 'images', masks_name, im.binarize, pixels)
+    masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
+    images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
 
     images, masks = im.double_tensor(images,masks)
 
@@ -71,7 +77,7 @@ if __name__ == '__main__':
     unet_model.summary()
 
     if callbacks:
-        callb = [logs.tensorboard('U_net_'), logs.weights('U_net'), logs.early_stop(7)]
+        callb = [logs.tensorboard('U_net_chanels_' + str(output_chanels)), logs.early_stop(7)]
     else:
         callb = []
 
@@ -100,3 +106,5 @@ if __name__ == '__main__':
                                     callbacks= callb,
                                     shuffle = True,
                                     validation_split = 0.2)
+
+unet_model.save('/home/mr1142/Documents/Data/models/' + name + str(output_chanels) + '.h5')

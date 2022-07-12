@@ -41,6 +41,11 @@ if __name__ == '__main__':
                         type=bool,
                         default=False,
                         help="Callbacks")
+    parser.add_argument('-n',
+                        '--name',
+                        type=str,
+                        default='chanels_model_',
+                        help="name of the model") 
 
 
     args = parser.parse_args()
@@ -51,11 +56,12 @@ if __name__ == '__main__':
     epoch = args.epochs
     pixels = args.pixels
     callbacks = args.callbacks
+    name = args.name
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
-    masks = im.create_tensor(path, 'mascara', masks_name, im.normalize, pixels)
-    images = im.create_tensor(path, 'images', masks_name, im.binarize, pixels)
+    masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
+    images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
     log.information('Unet', 'Imagenes cargadas')
 
     images, masks = im.double_tensor(images,masks)
@@ -72,7 +78,7 @@ if __name__ == '__main__':
 
 
     if callbacks:
-        callb = [logs.tensorboard('U_net_efficient'), logs.early_stop(7)]
+        callb = [logs.tensorboard('U_net_efficient_python_'), logs.early_stop(10)]
         history = unet_model.fit(images,masks,
                                 batch_size = batch,
                                 epochs = epoch,
@@ -85,3 +91,5 @@ if __name__ == '__main__':
                                 epochs = epoch,
                                 shuffle = True,
                                 validation_split = 0.2)
+
+unet_model.save('/home/mr1142/Documents/Data/models/' + name + '.h5')

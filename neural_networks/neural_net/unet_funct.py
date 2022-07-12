@@ -58,7 +58,11 @@ def build_unet_model(pixels, output_chanels=3):
     u9 = upsample_block(u8, f1, 64)
 
     # outputs
-    outputs = layers.Conv2D(output_chanels, 1, padding="same", activation = "softmax")(u9)
+    if output_chanels == 1:
+        outputs = layers.Conv2D(output_chanels, 1, padding="same", activation = "sigmoid")(u9)
+    else:
+        outputs = layers.Conv2D(output_chanels, 1, padding="same", activation = "softmax")(u9)
+
 
     # unet model with Keras Functional API
     unet_model = tf.keras.Model(inputs, outputs, name="U-Net")

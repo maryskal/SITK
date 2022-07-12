@@ -19,11 +19,16 @@ def binarize(img):
     img[img>0] = 1
     return img
 
+def clahe(img):
+    clahe = cv2.createCLAHE()
+    final_img = clahe.apply(img)
+    return img
+
 
 def create_tensor(path, folder, names, func, pixels=256):
     tensor = np.zeros((len(names), pixels,pixels,1))
     for i in range(len(names)):
-        tensor[i, ...] = func(read_img(path, 'mascara', names[i], pixels))
+        tensor[i, ...] = func(clahe(read_img(path, 'mascara', names[i], pixels)))
     return tensor
     
 
