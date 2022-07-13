@@ -39,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('-c',
                         '--callbacks',
                         type=bool,
-                        default=False,
+                        default=True,
                         help="Callbacks")
     parser.add_argument('-ch',
                         '--chanels',
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
-    images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
+    images = im.create_tensor(path, 'images', masks_name, im.norm_clahe, pixels)
 
     images, masks = im.double_tensor(images,masks)
     

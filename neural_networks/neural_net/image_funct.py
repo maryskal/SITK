@@ -10,6 +10,12 @@ def read_img(path, folder, img, pixels = 256):
     img = np.expand_dims(img, axis=-1)
     return img
 
+def clahe(img):
+    clahe = cv2.createCLAHE()
+    final_img = clahe.apply(img)
+    final_img = np.expand_dims(final_img, axis=-1)
+    return final_img
+
 
 def normalize(img):
     return (img - np.mean(img))/ np.std(img)
@@ -19,16 +25,17 @@ def binarize(img):
     img[img>0] = 1
     return img
 
-def clahe(img):
-    clahe = cv2.createCLAHE()
-    final_img = clahe.apply(img)
+
+def norm_clahe(img):
+    img = clahe(img)
+    img = normalize(img)
     return img
 
 
 def create_tensor(path, folder, names, func, pixels=256):
     tensor = np.zeros((len(names), pixels,pixels,1))
     for i in range(len(names)):
-        tensor[i, ...] = func(clahe(read_img(path, folder, names[i], pixels)))
+        tensor[i, ...] = func(read_img(path, folder, names[i], pixels))
     return tensor
     
 
