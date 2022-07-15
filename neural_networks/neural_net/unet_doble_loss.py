@@ -16,7 +16,6 @@ def build_unet_model(pixels, mask):
     # inputs
     X_train = layers.Input(shape=(pixels,pixels,1))
     Y_train = layers.Input(shape=(pixels,pixels,1))
-    Y_train2 = layers.Input(shape=(16, 16, 1024))
         
     # encoder: contracting path - downsample
     # 1 - downsample
@@ -47,9 +46,10 @@ def build_unet_model(pixels, mask):
     # Mask 
 
     outputs2 = mask(outputs1)
+    Y_train2 = mask(Y_train)
     mask.trainable = False
     
-    unet_model = tf.keras.Model(inputs=[X_train, Y_train, Y_train2], outputs=[outputs2, outputs1], name="U-Net")
+    unet_model = tf.keras.Model(inputs=[X_train, Y_train], outputs=[outputs2, outputs1, Y_train2], name="U-Net")
     
     unet_model.add_loss(ex.MyLoss(Y_train, Y_train2, outputs1, outputs2))
     

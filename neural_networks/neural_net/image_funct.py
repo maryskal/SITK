@@ -3,12 +3,22 @@ import cv2
 import imutils
 import os
 
-def read_img(path, folder, img, pixels = 256):
-    img = cv2.imread(os.path.join(path, folder, img))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.resize(img, (pixels, pixels))
+
+def recolor_resize(img, pix):
+    try:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    except:
+        print('error B&W')
+    img = cv2.resize(img, (pix, pix))
     img = np.expand_dims(img, axis=-1)
     return img
+
+
+def read_img(path, folder, img, pix = 256):
+    img = cv2.imread(os.path.join(path, folder, img))
+    img = recolor_resize(img, pix)
+    return img
+
 
 def clahe(img):
     clahe = cv2.createCLAHE()
@@ -59,3 +69,12 @@ def double_tensor(images_tensor, masks_tensor):
     images_tensor = np.concatenate((new_img, images_tensor), axis = 0)
     masks_tensor = np.concatenate((new_mask, masks_tensor), axis = 0)
     return images_tensor, masks_tensor
+
+
+def apply_mask(img, model):
+    pix = img.shape[1]
+    img_2 = normalize(recolor_resize(img, 256))
+    mask = model.predict(img_2[np.newaxis,...])[0,...]
+    mask = cv2.resize(mask, (pix, pix))
+    img[mask!=1]=0
+    return img

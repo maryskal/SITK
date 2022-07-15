@@ -39,13 +39,18 @@ if __name__ == '__main__':
     parser.add_argument('-c',
                         '--callbacks',
                         type=bool,
-                        default=False,
+                        default=True,
                         help="Callbacks")
     parser.add_argument('-n',
                         '--name',
                         type=str,
-                        default='chanels_model_',
+                        default='last',
                         help="name of the model") 
+    parser.add_argument('-cl',
+                        '--clahe',
+                        type=bool,
+                        default=False,
+                        help="apply clahe to rx")            
 
 
     args = parser.parse_args()
@@ -57,11 +62,17 @@ if __name__ == '__main__':
     pixels = args.pixels
     callbacks = args.callbacks
     name = args.name
+    clahe = args.clahe
+
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
-    images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
+    if clahe:
+        images = im.create_tensor(path, 'images', masks_name, im.norm_clahe, pixels)
+    else:
+        images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
+
     log.information('Unet', 'Imagenes cargadas')
 
     images, masks = im.double_tensor(images,masks)
@@ -78,7 +89,7 @@ if __name__ == '__main__':
 
 
     if callbacks:
-        callb = [logs.tensorboard('U_net_efficient_python_'), logs.early_stop(10)]
+        callb = [logs.tensorboard('unet_effnet_'+ name), logs.early_stop(10)]
         history = unet_model.fit(images,masks,
                                 batch_size = batch,
                                 epochs = epoch,
@@ -92,4 +103,4 @@ if __name__ == '__main__':
                                 shuffle = True,
                                 validation_split = 0.2)
 
-unet_model.save('/home/mr1142/Documents/Data/models/' + name + '.h5')
+unet_model.save('/home/mr1142/Documents/Data/models/unet_effnet_' + name + '.h5')
