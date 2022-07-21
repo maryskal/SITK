@@ -30,7 +30,7 @@ def upsample_block(x, conv_features, n_filters):
     return x
 
 
-def build_unet_model(pixels, output_chanels=3):
+def build_unet_model(pixels, output_chanels=1):
      # inputs
     inputs = layers.Input(shape=(pixels,pixels,1))
 

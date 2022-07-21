@@ -18,8 +18,8 @@ def MyLoss(Y_train, Y_train2, outputs1, outputs2):
     # Loss 1
     loss1 = 1-dice_coef(Y_train, outputs1)
     # Loss 2
-    loss2 = abs(Y_train2 - outputs2)
-    loss = loss1 + loss2
+    loss2 = (Y_train2 - outputs2)**2
+    loss = loss1 + 1.5*loss2
     return loss1
 
 
