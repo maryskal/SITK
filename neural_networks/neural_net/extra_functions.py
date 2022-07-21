@@ -14,15 +14,6 @@ def dice_coef_loss(y_true, y_pred):
     return 1 - dice_coef(y_true, y_pred)
 
 
-def MyLoss(Y_train, Y_train2, outputs1, outputs2):
-    # Loss 1
-    loss1 = 1-dice_coef(Y_train, outputs1)
-    # Loss 2
-    loss2 = (Y_train2 - outputs2)**2
-    loss = loss1 + 1.5*loss2
-    return loss1
-
-
 def charge_model(name, dice=False):
     if dice:
         mask_model = keras.models.load_model('/home/mr1142/Documents/Data/models/' + name + '.h5', 

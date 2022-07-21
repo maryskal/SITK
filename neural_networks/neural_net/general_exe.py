@@ -1,15 +1,9 @@
 import argparse
 import os
+from extra_functions import dice_coef_loss
 import logs
-import numpy as np
 import tensorflow as tf
-import image_funct as im
 import logging_function as log
-import unet_doble_loss as u_loss
-import unet_effic_funct as u_eff
-import unet_funct as u_net
-import extra_functions as ex
-
 
 
 if __name__ == '__main__':
@@ -53,6 +47,12 @@ if __name__ == '__main__':
     pixels = 256
 
     #----------------------------------------------------
+    import image_funct as im
+    import unet_doble_loss as u_loss
+    import unet_effic_funct as u_eff
+    import unet_funct as u_net
+    import extra_functions as ex
+
     def unet():
         unet_model = u_net.build_unet_model(256,1)
         unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
@@ -69,15 +69,11 @@ if __name__ == '__main__':
         return unet_model
 
     def uloss():
-        sub_mask = u_loss.charge_mask()
-        unet_model = u_loss.build_unet_model(256, sub_mask)
+        unet_model = u_loss.build_unet_model(256)
         unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 1e-4),
-                            loss=None)
+                            loss=u_loss.MyLoss,
+                            metrics = [ex.dice_coef_loss, u_loss.loss_mask])
         return unet_model
-
-    modelos = {'unet': unet(),
-                'ueff': ueff(),
-                'uloss': uloss()}
     #----------------------------------------------------
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
@@ -96,22 +92,21 @@ if __name__ == '__main__':
 
     images, masks = im.double_tensor(images,masks)
 
-    unet_model = modelos.get(model, None)
+    if model == 'unet':
+        unet_model = unet()
+    elif model == 'ueff':
+        unet_model = ueff()
+    elif model == 'uloss':
+        unet_model = uloss()
+    else:
+        unet_model = None
+        print('Non correct model')
 
-    if model == 'uloss':
-        history = unet_model.fit([images,masks],
+    history = unet_model.fit(images,masks,
                             batch_size = batch,
                             epochs = epoch,
-                            callbacks = callb,
+                            callbacks= callb,
                             shuffle = True,
-                            validation_split=0.2,
-                            verbose = 1)
-    else:
-        history = unet_model.fit(images,masks,
-                                    batch_size = batch,
-                                    epochs = epoch,
-                                    callbacks= callb,
-                                    shuffle = True,
-                                    validation_split = 0.2)
+                            validation_split = 0.2)        
 
     unet_model.save('/home/mr1142/Documents/Data/models/' + model + '_' + name + '.h5')

@@ -85,7 +85,7 @@ if __name__ == '__main__':
     unet_model.summary()
 
     if callbacks:
-        callb = [logs.tensorboard('unet_chan' + str(output_chanels) + '_' + name),  logs.early_stop(10)]
+        callb = [logs.tensorboard('unet_' + str(output_chanels) + '_' + name),  logs.early_stop(10)]
     else:
         callb = []
 

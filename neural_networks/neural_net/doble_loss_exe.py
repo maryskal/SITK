@@ -3,10 +3,7 @@ import os
 import logs
 import numpy as np
 import tensorflow as tf
-import image_funct as im
 import logging_function as log
-import unet_doble_loss as un
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -54,6 +51,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
+    import unet_doble_loss as un
+    import image_funct as im
+    import extra_functions as ex
+
+
     path = str(args.path)
     batch = args.batch_size
     epoch = args.epochs
@@ -61,6 +63,7 @@ if __name__ == '__main__':
     callbacks = args.callbacks
     name = args.name
     clahe = args.clahe
+
 
     masks_name = os.listdir(os.path.join(path, 'mascara'))
 
@@ -73,18 +76,17 @@ if __name__ == '__main__':
 
     images, masks = im.double_tensor(images,masks)
 
-    sub_mask = un.charge_mask()
-
-    unet_model = un.build_unet_model(pixels, sub_mask)
+    unet_model = un.build_unet_model(pixels)
     unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 1e-4),
-                        loss=None)
+                        loss=un.MyLoss,
+                        metrics = [ex.dice_coef_loss, un.loss_mask])
 
     if callbacks:
-        callb = [logs.tensorboard('unet_custom_loss_' + name), logs.early_stop(7)]
+        callb = [logs.tensorboard('uloss_' + name), logs.early_stop(7)]
     else:
         callb = []
 
-    history = unet_model.fit([images,masks],
+    history = unet_model.fit(images,masks,
                          batch_size = batch,
                          epochs = epoch,
                          callbacks = callb,

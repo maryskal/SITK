@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
 
     if callbacks:
-        callb = [logs.tensorboard('unet_effnet_'+ name), logs.early_stop(10)]
+        callb = [logs.tensorboard('ueff_'+ name), logs.early_stop(10)]
         history = unet_model.fit(images,masks,
                                 batch_size = batch,
                                 epochs = epoch,

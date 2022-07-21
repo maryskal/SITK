@@ -5,21 +5,33 @@ import unet_funct as un
 import extra_functions as ex
 
 
-def charge_mask():
-    mask_model = keras.models.load_model('/home/mr1142/Documents/Data/models/mask_1.h5', 
-                                     custom_objects={"dice_coef_loss": ex.dice_coef_loss, "dice_coef": ex.dice_coef})
-    sub_mask = tf.keras.Model(inputs=mask_model.input, outputs=mask_model.layers[18].output)
-    return sub_mask
+mask_model = keras.models.load_model('/home/mr1142/Documents/Data/models/mask_1.h5', 
+                                    custom_objects={"dice_coef_loss": ex.dice_coef_loss, "dice_coef": ex.dice_coef})
+sub_mask = tf.keras.Model(inputs=mask_model.input, outputs=mask_model.layers[18].output)
+sub_mask.trainable = False
 
 
-def build_unet_model(pixels, mask):
+def loss_mask(y_true, y_pred):
+    y_pred = sub_mask(y_pred)
+    y_true = sub_mask(y_true)
+    return 0.5*abs(y_true - y_pred)
+
+
+def MyLoss(y_true, y_pred):
+    # Loss 1
+    loss1 = ex.dice_coef_loss(y_true, y_pred)
+    # Loss 2
+    loss2 = loss_mask(y_true, y_pred)
+    loss = loss1 + loss2
+    return loss
+
+def build_unet_model(pixels):
     # inputs
-    X_train = layers.Input(shape=(pixels,pixels,1))
-    Y_train = layers.Input(shape=(pixels,pixels,1))
+    input = layers.Input(shape=(pixels,pixels,1))
         
     # encoder: contracting path - downsample
     # 1 - downsample
-    f1, p1 = un.downsample_block(X_train, 64)
+    f1, p1 = un.downsample_block(input, 64)
     # 2 - downsample
     f2, p2 = un.downsample_block(p1, 128)
     # 3 - downsample
@@ -41,16 +53,8 @@ def build_unet_model(pixels, mask):
     u9 = un.upsample_block(u8, f1, 64)
 
     # outputs
-    outputs1 = layers.Conv2D(1, 1, padding="same", activation = "sigmoid", name = 'outputs2')(u9)
+    output = layers.Conv2D(1, 1, padding="same", activation = "sigmoid", name = 'outputs2')(u9)
     
-    # Mask 
-
-    outputs2 = mask(outputs1)
-    Y_train2 = mask(Y_train)
-    mask.trainable = False
-    
-    unet_model = tf.keras.Model(inputs=[X_train, Y_train], outputs=[outputs2, outputs1, Y_train2], name="U-Net")
-    
-    unet_model.add_loss(ex.MyLoss(Y_train, Y_train2, outputs1, outputs2))
-    
+    unet_model = tf.keras.Model(inputs=input, outputs= output , name="U-Net")
+        
     return unet_model
