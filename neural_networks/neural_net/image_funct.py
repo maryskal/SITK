@@ -52,21 +52,17 @@ def create_tensor(path, folder, names, func, pixels=256):
 
 def albumentation(input_image, input_mask):
     transform = A.Compose([
-        A.Rotate(limit=90, border_mode = None, interpolation=2, p=1),
+        A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
         A.OneOf([
-            A.RandomCrop(p= 1, width=230, height=230),
-            A.Downscale(scale_min=0.5, scale_max=0.8, interpolation=0, always_apply=False, p=0.5),
-            A.GridDistortion (num_steps=5, distort_limit=0.3, interpolation=2, border_mode=None, p=1),
-            A.Sharpen(alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.5),
-            A.MotionBlur(blur_limit=7, always_apply=False, p=0.5),
-            A.ElasticTransform(alpha=0.5, sigma=50, alpha_affine=50, interpolation=1, border_mode=None, always_apply=False, p=1)
+            A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
+            A.MotionBlur(blur_limit=5, always_apply=False, p=0.3),
+            A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.8),
         ], p=0.8),
     ])
     transformed = transform(image=input_image.astype(np.float32), mask=input_mask.astype(np.float32))
     input_image = normalize(recolor_resize(transformed['image']))
     input_mask = binarize(recolor_resize(transformed['mask']))
     return input_image, input_mask
-
 
 
 def augment(input_image, input_mask):

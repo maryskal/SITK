@@ -32,7 +32,12 @@ if __name__ == '__main__':
                         '--model',
                         type=str,
                         default="unet",
-                        help="type of model") 
+                        help="type of model")
+    parser.add_argument('-a',
+                        '--augmentation',
+                        type=int,
+                        default=2,
+                        help="number of replications")                     
 
     args = parser.parse_args()
 
@@ -41,6 +46,7 @@ if __name__ == '__main__':
     name = args.name
     clahe = args.clahe
     model = args.model
+    augmentation = args.augmentation
     path = '/home/mr1142/Documents/Data/segmentation/splited/train'
     batch = 8
     epoch = 200
@@ -63,7 +69,6 @@ if __name__ == '__main__':
                         metrics=metrics)
         return unet_model
 
-
     def ueff():
         unet_model = u_eff.definitive_model(256, 200)
         unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
@@ -79,6 +84,7 @@ if __name__ == '__main__':
         return unet_model
     #----------------------------------------------------
 
+    # DATOS
     masks_name = ex.list_files(os.path.join(path, 'mascara'))
 
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
@@ -87,19 +93,17 @@ if __name__ == '__main__':
     else:
         images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
     log.information('Unet', 'Imagenes cargadas')
-
-    print('\n')
-    print(images.shape)
-
+    
+    # Aumento
+    images, masks = im.augment_tensor(images,masks,augmentation)
+    
+    # CALLBACKS
     if callbacks:
         callb = [logs.tensorboard(model + '_' + name), logs.early_stop(10)]
     else:
         callb = []
 
-    images, masks = im.augment_tensor(images,masks)
-
-    print(images.shape)
-
+    # MODELOS
     if model == 'unet':
         unet_model = unet()
     elif model == 'ueff':
@@ -110,6 +114,7 @@ if __name__ == '__main__':
         unet_model = None
         print('\n INCORRECT MODEL \n')
 
+    # ENTRENAMIENTO
     history = unet_model.fit(images,masks,
                             batch_size = batch,
                             epochs = epoch,
@@ -119,5 +124,5 @@ if __name__ == '__main__':
 
     unet_model.save('/home/mr1142/Documents/Data/models/' + model + '_' + name + '.h5')
     
-    resultados = ev.evaluation(unet_model)
-    ev.save_eval(model, name, resultados)
+    # EVALUACIÓN
+    ev.all_evaluations(model, name, unet_model)
