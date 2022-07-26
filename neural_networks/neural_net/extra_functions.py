@@ -1,6 +1,10 @@
 from tensorflow.keras import backend as K
 from tensorflow import keras
+import os
 
+def list_files(path):
+    return [f for f in os.listdir(path) 
+                if os.path.isfile(os.path.join(path, f))]
 
 def dice_coef(y_true, y_pred, smooth=100):        
     y_true_f = K.flatten(y_true)

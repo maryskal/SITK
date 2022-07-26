@@ -69,15 +69,16 @@ if __name__ == '__main__':
     name = args.name
     clahe = args.clahe
 
-    masks_name = os.listdir(os.path.join(path, 'mascara'))
+    masks_name = ex.list_files(os.path.join(path, 'mascara'))
 
+                
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
     if clahe:
         images = im.create_tensor(path, 'images', masks_name, im.norm_clahe, pixels)
     else:
         images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
 
-    images, masks = im.double_tensor(images,masks)
+    images, masks = im.augment_tensor(images,masks)
     
     log.information('Unet', 'Imagenes cargadas')
 

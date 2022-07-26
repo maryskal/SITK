@@ -65,8 +65,9 @@ if __name__ == '__main__':
     clahe = args.clahe
 
 
-    masks_name = os.listdir(os.path.join(path, 'mascara'))
+    masks_name = ex.list_files(os.path.join(path, 'mascara'))
 
+                
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
     if clahe:
         images = im.create_tensor(path, 'images', masks_name, im.norm_clahe, pixels)
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
     log.information('Unet', 'Imagenes cargadas')
 
-    images, masks = im.double_tensor(images,masks)
+    images, masks = im.augment_tensor(images,masks)
 
     unet_model = un.build_unet_model(pixels)
     unet_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = 1e-4),

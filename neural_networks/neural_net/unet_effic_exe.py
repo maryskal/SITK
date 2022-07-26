@@ -65,7 +65,8 @@ if __name__ == '__main__':
     clahe = args.clahe
 
 
-    masks_name = os.listdir(os.path.join(path, 'mascara'))
+    masks_name = ex.list_files(os.path.join(path, 'mascara'))
+
 
     masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
     if clahe:
@@ -75,7 +76,7 @@ if __name__ == '__main__':
 
     log.information('Unet', 'Imagenes cargadas')
 
-    images, masks = im.double_tensor(images,masks)
+    images, masks = im.augment_tensor(images,masks)
     log.information('Unet', 'Nuevas imágenes generadas')
 
     unet_model = un.definitive_model(pixels, 200)

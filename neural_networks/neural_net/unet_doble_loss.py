@@ -14,7 +14,7 @@ sub_mask.trainable = False
 def loss_mask(y_true, y_pred):
     y_pred = sub_mask(y_pred)
     y_true = sub_mask(y_true)
-    return 0.5*abs(y_true - y_pred)
+    return 0.6*abs(y_true - y_pred)
 
 
 def MyLoss(y_true, y_pred):
