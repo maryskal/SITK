@@ -5,6 +5,7 @@ import os
 import albumentations as A
 
 
+# Modification of img
 def recolor_resize(img, pix=256):
     try:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -29,8 +30,8 @@ def clahe(img):
 
 
 def normalize(img):
-    # return (img - np.mean(img))/ np.std(img)
-    return img/np.max(img)
+    return (img - np.mean(img))/ np.std(img)
+    # return img/np.max(img)
 
 def binarize(img):
     img[img>0] = 1
@@ -56,16 +57,27 @@ def create_tensor(path, folder, names, pixels=256):
     return tensor
     
 
-def albumentation(input_image, input_mask):
+# Transformation of img
+transforms = {'gamma': A.Compose([
+                A.RandomGamma (gamma_limit=(20, 200), eps=None, always_apply=False, p=1),
+                A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
+                A.MotionBlur(blur_limit=5, always_apply=False, p=0.2),
+                A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
+                A.RandomCrop(p=0.2, width=250, height=250),
+                A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.1)]),
+            'rotate': A.Compose([
+                A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
+                A.OneOf([
+                    A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
+                    A.MotionBlur(blur_limit=5, always_apply=False, p=0.3),
+                    A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.8),
+                ], p=1)])
+    }
+
+
+def albumentation(input_image, input_mask, type):
     input_image[input_image<0] = 0
-    transform = A.Compose([
-        A.RandomGamma (gamma_limit=(20, 200), eps=None, always_apply=False, p=1),
-        A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
-        A.MotionBlur(blur_limit=5, always_apply=False, p=0.2),
-        A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
-        A.RandomCrop(p=0.2, width=250, height=250),
-        A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.1),
-    ])
+    transform = transforms[type]
     transformed = transform(image=input_image.astype(np.float32), mask=input_mask.astype(np.float32))
     input_image = recolor_resize(transformed['image'])
     input_mask = recolor_resize(transformed['mask'])
@@ -81,7 +93,7 @@ def augment(input_image, input_mask):
     return input_image, input_mask
 
 
-def augment_tensor(images_tensor, masks_tensor, type_augment='', n=2):
+def augment_tensor(images_tensor, masks_tensor, type_augment='rotate', n=2):
     new_n = images_tensor.shape[0]
     pixels = images_tensor.shape[1]
     for _ in range(n):
@@ -91,7 +103,7 @@ def augment_tensor(images_tensor, masks_tensor, type_augment='', n=2):
             if type_augment == 'old':
                 img, mask = augment(images_tensor[j], masks_tensor[j])
             else:
-                img, mask = albumentation(images_tensor[j], masks_tensor[j])
+                img, mask = albumentation(images_tensor[j], masks_tensor[j], type_augment)
             new_img[j, ...] = img
             new_mask[j,...] = mask
         images_tensor = np.concatenate((new_img, images_tensor), axis = 0)
@@ -99,6 +111,7 @@ def augment_tensor(images_tensor, masks_tensor, type_augment='', n=2):
     return images_tensor, masks_tensor
 
 
+# Apply mask
 def apply_mask(img, model):
     pix = img.shape[1]
     img_2 = normalize(recolor_resize(img, 256))
