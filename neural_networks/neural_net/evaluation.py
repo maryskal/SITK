@@ -10,8 +10,8 @@ masks_name = ex.list_files(os.path.join('/home/mr1142/Documents/Data/segmentatio
 def evaluate(model, file_names=masks_name):
     path = '/home/mr1142/Documents/Data/segmentation/splited/validation'
     pixels = 256
-    masks = im.create_tensor(path, 'mascara', file_names, im.binarize, pixels)
-    images = im.create_tensor(path, 'images', file_names, im.normalize, pixels)
+    masks = im.apply_to_tensor(im.create_tensor(path, 'mascara', file_names, pixels), im.binarize)
+    images = im.apply_to_tensor(im.create_tensor(path, 'images', file_names, pixels), im.normalize)
     results = model.evaluate(images, masks, batch_size=8)
     print(results)
     return results

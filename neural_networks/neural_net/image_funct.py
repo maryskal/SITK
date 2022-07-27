@@ -29,8 +29,8 @@ def clahe(img):
 
 
 def normalize(img):
-    return (img - np.mean(img))/ np.std(img)
-
+    # return (img - np.mean(img))/ np.std(img)
+    return img/np.max(img)
 
 def binarize(img):
     img[img>0] = 1
@@ -43,25 +43,32 @@ def norm_clahe(img):
     return img
 
 
-def create_tensor(path, folder, names, func, pixels=256):
+def apply_to_tensor(tensor, func):
+    for i in range(tensor.shape[0]):
+        tensor[i,...] = func(tensor[i,...])
+    return tensor
+
+
+def create_tensor(path, folder, names, pixels=256):
     tensor = np.zeros((len(names), pixels,pixels,1))
     for i in range(len(names)):
-        tensor[i, ...] = func(read_img(path, folder, names[i], pixels))
+        tensor[i, ...] = read_img(path, folder, names[i], pixels)
     return tensor
     
 
 def albumentation(input_image, input_mask):
+    input_image[input_image<0] = 0
     transform = A.Compose([
+        A.RandomGamma (gamma_limit=(20, 200), eps=None, always_apply=False, p=1),
+        A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
+        A.MotionBlur(blur_limit=5, always_apply=False, p=0.2),
         A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
-        A.OneOf([
-            A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
-            A.MotionBlur(blur_limit=5, always_apply=False, p=0.3),
-            A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.8),
-        ], p=0.8),
+        A.RandomCrop(p=0.2, width=250, height=250),
+        A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.1),
     ])
     transformed = transform(image=input_image.astype(np.float32), mask=input_mask.astype(np.float32))
-    input_image = normalize(recolor_resize(transformed['image']))
-    input_mask = binarize(recolor_resize(transformed['mask']))
+    input_image = recolor_resize(transformed['image'])
+    input_mask = recolor_resize(transformed['mask'])
     return input_image, input_mask
 
 
@@ -74,14 +81,17 @@ def augment(input_image, input_mask):
     return input_image, input_mask
 
 
-def augment_tensor(images_tensor, masks_tensor, n=2):
+def augment_tensor(images_tensor, masks_tensor, type_augment='', n=2):
     new_n = images_tensor.shape[0]
     pixels = images_tensor.shape[1]
     for _ in range(n):
         new_img = np.zeros((new_n, pixels,pixels,1))
         new_mask = np.zeros((new_n, pixels,pixels,1))
         for j in range(new_n):
-            img, mask = albumentation(images_tensor[j], masks_tensor[j])
+            if type_augment == 'old':
+                img, mask = augment(images_tensor[j], masks_tensor[j])
+            else:
+                img, mask = albumentation(images_tensor[j], masks_tensor[j])
             new_img[j, ...] = img
             new_mask[j,...] = mask
         images_tensor = np.concatenate((new_img, images_tensor), axis = 0)

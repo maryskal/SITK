@@ -2,7 +2,6 @@ import argparse
 import os
 import logs
 import tensorflow as tf
-import logging_function as log
 import evaluation as ev
 
 
@@ -36,8 +35,13 @@ if __name__ == '__main__':
     parser.add_argument('-a',
                         '--augmentation',
                         type=int,
-                        default=2,
-                        help="number of replications")                     
+                        default=3,
+                        help="number of replications")
+    parser.add_argument('-ty',
+                        '--type_aug',
+                        type=str,
+                        default='old',
+                        help="type_augmentation")                    
 
     args = parser.parse_args()
 
@@ -47,6 +51,7 @@ if __name__ == '__main__':
     clahe = args.clahe
     model = args.model
     augmentation = args.augmentation
+    type_augmentation = args.type_aug
     path = '/home/mr1142/Documents/Data/segmentation/splited/train'
     batch = 8
     epoch = 200
@@ -86,17 +91,19 @@ if __name__ == '__main__':
 
     # DATOS
     masks_name = ex.list_files(os.path.join(path, 'mascara'))
+    images = im.create_tensor(path, 'images', masks_name, pixels)
+    masks = im.create_tensor(path, 'mascara', masks_name, pixels)
 
-    masks = im.create_tensor(path, 'mascara', masks_name, im.binarize, pixels)
-    if clahe:
-        images = im.create_tensor(path, 'images', masks_name, im.norm_clahe, pixels)
-    else:
-        images = im.create_tensor(path, 'images', masks_name, im.normalize, pixels)
-    log.information('Unet', 'Imagenes cargadas')
-    
     # Aumento
-    images, masks = im.augment_tensor(images,masks,augmentation)
-    
+    images, masks = im.augment_tensor(images,masks,type_augmentation,augmentation)
+
+    # Binarize and normalize
+    if clahe:
+        images = im.apply_to_tensor(images, im.norm_clahe) 
+    else:
+        images = im.apply_to_tensor(images, im.normalize) 
+    masks = im.apply_to_tensor(masks, im.binarize) 
+
     # CALLBACKS
     if callbacks:
         callb = [logs.tensorboard(model + '_' + name), logs.early_stop(10)]
