@@ -91,8 +91,9 @@ if __name__ == '__main__':
 
     # DATOS
     masks_name = ex.list_files(os.path.join(path, 'mascara'))
-    images = im.create_tensor(path, 'images', masks_name, pixels)
-    masks = im.create_tensor(path, 'mascara', masks_name, pixels)
+    images = im.apply_to_tensor(im.create_tensor(path, 'images', masks_name, pixels), im.normalize)
+    masks = im.apply_to_tensor(im.create_tensor(path, 'mascara', masks_name, pixels), im.binarize)
+
 
     # Aumento
     images, masks = im.augment_tensor(images,masks,type_augmentation,augmentation)

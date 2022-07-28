@@ -34,4 +34,7 @@ def all_evaluations(type, name, model):
     for lab in labels:
         index_contain = [i for i in df.index if bool(re.search(lab, df['Finding Labels'][i]))]
         images = list(df['Image Index'].iloc[index_contain])
-        save_eval(type, name, evaluate(model,images), lab)
+        try:
+            save_eval(type, name, evaluate(model,images), lab)
+        except:
+            print(f'model {type} {name}, not saved in lab {lab}')

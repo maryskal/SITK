@@ -71,7 +71,11 @@ transforms = {'gamma': A.Compose([
                     A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None, always_apply=False, p=1),
                     A.MotionBlur(blur_limit=5, always_apply=False, p=0.3),
                     A.Sharpen(alpha=(0, 1), lightness=(0, 1.0), always_apply=False, p=0.8),
-                ], p=1)])
+                ], p=1)]),
+            'simplest': A.Compose([
+                A.Rotate(limit=60, border_mode = None, interpolation=2, p=1),
+                A.ElasticTransform(alpha=0.5, sigma=20, alpha_affine=20, interpolation=2, border_mode=None,
+                                    always_apply=False, p=0.8)])
     }
 
 
